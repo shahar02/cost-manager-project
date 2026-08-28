@@ -13,6 +13,7 @@ const getUser = require('../controllers/getUser.controller');
 
 const router = express.Router();
 
+// order does not matter here since each path is distinct
 router.post('/add', addUser);
 router.get('/users', listUsers);
 router.get('/users/:id', getUser);

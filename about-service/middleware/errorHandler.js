@@ -8,6 +8,7 @@
 let errorCounter = 0;
 
 function buildErrorResponse(message) {
+  // each error gets a unique sequential id, distinct from any business id
   errorCounter += 1;
   return {
     id: errorCounter,

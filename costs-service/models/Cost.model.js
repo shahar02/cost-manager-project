@@ -12,15 +12,18 @@ const ALLOWED_CATEGORIES = ['food', 'health', 'housing', 'sports', 'education'];
 
 const costSchema = new mongoose.Schema(
   {
+    // free-text explanation of the expense, e.g. "milk"
     description: {
       type: String,
       required: true,
     },
+    // must be one of the five supported categories
     category: {
       type: String,
       required: true,
       enum: ALLOWED_CATEGORIES,
     },
+    // matches User.id (the business id), NOT the user's Mongo _id
     userid: {
       type: Number,
       required: true,
@@ -40,6 +43,7 @@ const costSchema = new mongoose.Schema(
     },
   },
   {
+    // we do not need Mongoose's default versioning field for this project
     versionKey: false,
   }
 );

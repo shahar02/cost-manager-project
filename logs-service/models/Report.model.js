@@ -14,14 +14,17 @@ const mongoose = require('mongoose');
 
 const reportSchema = new mongoose.Schema(
   {
+    // which user this cached report belongs to
     userid: {
       type: Number,
       required: true,
     },
+    // calendar year of the report, e.g. 2026
     year: {
       type: Number,
       required: true,
     },
+    // calendar month of the report, 1-12
     month: {
       type: Number,
       required: true,
@@ -34,6 +37,7 @@ const reportSchema = new mongoose.Schema(
     },
   },
   {
+    // we do not need Mongoose's default versioning field for this project
     versionKey: false,
   }
 );

@@ -1,16 +1,18 @@
 /**
  * server.js
  *
- * Entry point for the costs microservice. Loads environment variables,
- * connects to MongoDB, and then starts listening for HTTP requests.
+ * Entry point for the costs microservice.
  */
+// load MONGO_URI / PORT / etc. from the .env file into process.env
 require('dotenv').config();
 const app = require('./app');
 const connectDB = require('./middleware/db');
 const logger = require('./middleware/logger');
 
+// fall back to 3003 locally if PORT is not set in the environment
 const PORT = process.env.PORT || 3003;
 
+// only start accepting HTTP requests once the database connection is ready
 connectDB(logger).then(() => {
   app.listen(PORT, () => {
     logger.info(`costs-service listening on port ${PORT}`);

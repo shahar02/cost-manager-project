@@ -8,6 +8,7 @@ const { buildErrorResponse } = require('../middleware/errorHandler');
 
 async function listUsers(req, res) {
   try {
+    // an empty filter {} matches every document in the "users" collection
     const users = await User.find({});
     return res.status(200).json(users);
   } catch (err) {

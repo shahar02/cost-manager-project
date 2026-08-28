@@ -11,14 +11,17 @@ const mongoose = require('mongoose');
 
 const logSchema = new mongoose.Schema(
   {
+    // HTTP method of the request, e.g. "GET" or "POST"
     method: {
       type: String,
       required: true,
     },
+    // the path that was requested, e.g. "/api/users"
     endpoint: {
       type: String,
       required: true,
     },
+    // free-text description of the event being logged
     message: {
       type: String,
       required: false,
@@ -28,6 +31,7 @@ const logSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    // when the event was logged; defaults to "now" if not supplied
     timestamp: {
       type: Date,
       required: true,
@@ -35,6 +39,7 @@ const logSchema = new mongoose.Schema(
     },
   },
   {
+    // we do not need Mongoose's default versioning field for this project
     versionKey: false,
   }
 );

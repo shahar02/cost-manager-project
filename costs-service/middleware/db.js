@@ -8,18 +8,21 @@
 const mongoose = require('mongoose');
 
 async function connectDB(logger) {
+  // the connection string (with credentials) lives in the .env file, never in code
   const uri = process.env.MONGO_URI;
 
   if (!uri) {
     throw new Error('MONGO_URI is not defined in the .env file');
   }
 
+  // attempt the connection; Mongoose reuses this single connection for all queries
   try {
     await mongoose.connect(uri);
     if (logger) {
       logger.info('Connected to MongoDB Atlas successfully');
     }
   } catch (err) {
+    // report the connection failure before shutting down
     if (logger) {
       logger.error({ err }, 'Failed to connect to MongoDB Atlas');
     }

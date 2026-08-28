@@ -19,6 +19,7 @@ function requestLogger(serviceName) {
     // log to the console immediately (does not block the request)
     logger.info(message);
 
+    // persist the log entry to the "logs" collection
     try {
       await Log.create({
         method: req.method,
@@ -26,6 +27,7 @@ function requestLogger(serviceName) {
         message,
         service: serviceName,
       });
+      // no further action needed on success - the document is now saved
     } catch (err) {
       // logging failures should never break the actual request handling
       logger.error({ err }, 'Failed to write log entry to MongoDB');

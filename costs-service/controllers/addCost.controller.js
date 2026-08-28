@@ -15,11 +15,13 @@ async function addCost(req, res) {
   if (!description || typeof description !== 'string') {
     return res.status(400).json(buildErrorResponse('description is required and must be a string'));
   }
+  // category must be exactly one of the five supported values
   if (!category || !ALLOWED_CATEGORIES.includes(category)) {
     return res
       .status(400)
       .json(buildErrorResponse(`category is required and must be one of: ${ALLOWED_CATEGORIES.join(', ')}`));
   }
+  // userid and sum must both be present and numeric
   if (userid === undefined || Number.isNaN(Number(userid))) {
     return res.status(400).json(buildErrorResponse('userid is required and must be a number'));
   }
@@ -41,10 +43,12 @@ async function addCost(req, res) {
       userid: Number(userid),
       sum: Number(sum),
     };
+    // only override the default (current time) when a date was explicitly sent
     if (created_at) {
       costData.created_at = new Date(created_at);
     }
 
+    // persist the new cost item and return it exactly as it was stored
     const newCost = await Cost.create(costData);
     return res.status(201).json(newCost);
   } catch (err) {

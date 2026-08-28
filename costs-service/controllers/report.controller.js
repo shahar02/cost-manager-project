@@ -16,6 +16,7 @@ const { buildErrorResponse } = require('../middleware/errorHandler');
  */
 function groupCostsByCategory(costDocuments) {
   return ALLOWED_CATEGORIES.map((category) => {
+    // keep only the costs that belong to this specific category
     const itemsInCategory = costDocuments
       .filter((cost) => cost.category === category)
       .map((cost) => ({
@@ -24,6 +25,7 @@ function groupCostsByCategory(costDocuments) {
         day: cost.created_at.getDate(),
       }));
 
+    // wrap in { categoryName: [...] } even when the array is empty
     return { [category]: itemsInCategory };
   });
 }
@@ -34,6 +36,7 @@ function groupCostsByCategory(costDocuments) {
  * cost items, so its report is safe to cache permanently.
  */
 function isPastMonth(year, month) {
+  // compare the first day of the requested month to the first day of "now"
   const now = new Date();
   const requestedMonthStart = new Date(year, month - 1, 1);
   const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -43,10 +46,12 @@ function isPastMonth(year, month) {
 async function getReport(req, res) {
   const { id, year, month } = req.query;
 
+  // all three query parameters are mandatory
   if (!id || !year || !month) {
     return res.status(400).json(buildErrorResponse('id, year and month are all required query parameters'));
   }
 
+  // query string values arrive as strings, so convert them to numbers up front
   const userid = Number(id);
   const numericYear = Number(year);
   const numericMonth = Number(month);
@@ -54,6 +59,7 @@ async function getReport(req, res) {
   if (Number.isNaN(userid) || Number.isNaN(numericYear) || Number.isNaN(numericMonth)) {
     return res.status(400).json(buildErrorResponse('id, year and month must all be numbers'));
   }
+  // guard against nonsensical month values such as 0 or 13
   if (numericMonth < 1 || numericMonth > 12) {
     return res.status(400).json(buildErrorResponse('month must be between 1 and 12'));
   }
@@ -73,8 +79,10 @@ async function getReport(req, res) {
      * fresh from "costs", since their underlying data can still change.
      * ------------------------------------------------------------------ */
     if (isPastMonth(numericYear, numericMonth)) {
+      // look for a report we already computed and stored on a previous request
       const cachedReport = await Report.findOne({ userid, year: numericYear, month: numericMonth });
       if (cachedReport) {
+        // serve straight from the cache, skipping the "costs" collection entirely
         return res.status(200).json({
           userid: cachedReport.userid,
           year: cachedReport.year,
@@ -82,6 +90,7 @@ async function getReport(req, res) {
           costs: cachedReport.costs,
         });
       }
+      // no stored report yet for this past month - fall through and compute it below
     }
 
     // no cached version available (or the month is current/future) -> compute it now
@@ -100,6 +109,7 @@ async function getReport(req, res) {
       await Report.create({ userid, year: numericYear, month: numericMonth, costs: groupedCosts });
     }
 
+    // return the freshly computed report to the client
     return res.status(200).json({
       userid,
       year: numericYear,
@@ -107,6 +117,7 @@ async function getReport(req, res) {
       costs: groupedCosts,
     });
   } catch (err) {
+    // any unexpected DB/runtime error is reported as a generic 500
     return res.status(500).json(buildErrorResponse(err.message));
   }
 }
