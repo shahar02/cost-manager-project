@@ -56,8 +56,11 @@ async function getReport(req, res) {
   const numericYear = Number(year);
   const numericMonth = Number(month);
 
-  if (Number.isNaN(userid) || Number.isNaN(numericYear) || Number.isNaN(numericMonth)) {
-    return res.status(400).json(buildErrorResponse('id, year and month must all be numbers'));
+  if (!Number.isInteger(userid) || !Number.isInteger(numericYear) || !Number.isInteger(numericMonth)) {
+    return res.status(400).json(buildErrorResponse('id, year and month must all be integers'));
+  }
+  if (numericYear < 1) {
+    return res.status(400).json(buildErrorResponse('year must be a positive integer'));
   }
   // guard against nonsensical month values such as 0 or 13
   if (numericMonth < 1 || numericMonth > 12) {

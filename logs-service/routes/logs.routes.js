@@ -6,9 +6,10 @@
  */
 const express = require('express');
 const listLogs = require('../controllers/listLogs.controller');
+const endpointLogger = require('../middleware/endpointLogger');
 
 const router = express.Router();
 
-router.get('/logs', listLogs);
+router.get('/logs', endpointLogger('logs-service'), listLogs);
 
 module.exports = router;

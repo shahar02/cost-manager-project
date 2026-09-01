@@ -15,18 +15,19 @@ const logger = require('./logger');
 function requestLogger(serviceName) {
   return async (req, res, next) => {
     const message = `${req.method} ${req.originalUrl}`;
+    const entry = {
+      method: req.method,
+      endpoint: req.originalUrl,
+      message,
+      service: serviceName,
+    };
 
-    // log to the console immediately (does not block the request)
-    logger.info(message);
+    // Create the structured message with Pino and persist the same data.
+    logger.info(entry, message);
 
     // persist the log entry to the "logs" collection
     try {
-      await Log.create({
-        method: req.method,
-        endpoint: req.originalUrl,
-        message,
-        service: serviceName,
-      });
+      await Log.create(entry);
       // no further action needed on success - the document is now saved
     } catch (err) {
       // logging failures should never break the actual request handling

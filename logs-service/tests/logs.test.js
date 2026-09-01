@@ -36,12 +36,15 @@ beforeEach(async () => {
 });
 
 describe('GET /api/logs', () => {
-  it('returns an empty array when there are no logs yet', async () => {
-    // NOTE: the requestLogger middleware itself writes a log for THIS
-    // very request, so by the time the handler runs there will be one.
+  it('writes both the request and endpoint-access log entries', async () => {
     const res = await request(app).get('/api/logs');
+
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body).toHaveLength(2);
+    expect(res.body.map((entry) => entry.message)).toEqual(
+      expect.arrayContaining(['GET /api/logs', 'endpoint accessed: GET /api/logs'])
+    );
   });
 
   it('returns previously written log entries', async () => {

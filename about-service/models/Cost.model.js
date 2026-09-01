@@ -8,7 +8,8 @@
 const mongoose = require('mongoose');
 
 // Only these five categories are supported by the application.
-const ALLOWED_CATEGORIES = ['food', 'health', 'housing', 'sports', 'education'];
+// Keep this order in sync with the exact report shape in the project document.
+const ALLOWED_CATEGORIES = ['food', 'education', 'health', 'housing', 'sport'];
 
 const costSchema = new mongoose.Schema(
   {

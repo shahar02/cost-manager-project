@@ -88,6 +88,46 @@ describe('POST /api/add', () => {
     // an invalid category must be rejected before anything is saved
     expect(res.status).toBe(400);
   });
+
+  it.each([0, -1, -25.5])('rejects a non-positive sum (%s)', async (invalidSum) => {
+    const res = await request(app).post('/api/add').send({
+      userid: 123123,
+      description: 'invalid expense',
+      category: 'food',
+      sum: invalidSum,
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('id');
+    expect(res.body).toHaveProperty('message');
+  });
+
+  it('rejects an invalid creation date', async () => {
+    const res = await request(app).post('/api/add').send({
+      userid: 123123,
+      description: 'invalid date',
+      category: 'food',
+      sum: 8,
+      created_at: 'not-a-date',
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects a cost item whose date belongs to the past', async () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const res = await request(app).post('/api/add').send({
+      userid: 123123,
+      description: 'past expense',
+      category: 'food',
+      sum: 8,
+      created_at: yesterday.toISOString(),
+    });
+
+    expect(res.status).toBe(400);
+  });
 });
 
 describe('GET /api/report', () => {
@@ -99,12 +139,13 @@ describe('GET /api/report', () => {
     expect(res.status).toBe(200);
     expect(res.body.userid).toBe(123123);
     const categoryNames = res.body.costs.map((entry) => Object.keys(entry)[0]);
-    expect(categoryNames).toEqual(expect.arrayContaining(['food', 'health', 'housing', 'sports', 'education']));
+    expect(categoryNames).toEqual(['food', 'education', 'health', 'housing', 'sport']);
   });
 
   it('groups an added cost item under the correct category', async () => {
-    // add one "food" cost dated inside May 2026, then request that month's report
-    await request(app).post('/api/add').send({
+    // Seed a historical item directly. The public endpoint correctly rejects
+    // past dates, while direct model setup lets us test historical reporting.
+    await Cost.create({
       userid: 123123,
       description: 'choco',
       category: 'food',
@@ -122,8 +163,8 @@ describe('GET /api/report', () => {
   });
 
   it('caches a past month report using the Computed Design Pattern', async () => {
-    // add a cost dated well in the past (January 2020)
-    await request(app).post('/api/add').send({
+    // Seed a cost dated well in the past directly in the test database.
+    await Cost.create({
       userid: 123123,
       description: 'old book',
       category: 'education',
@@ -147,5 +188,13 @@ describe('GET /api/report', () => {
     const secondRes = await request(app).get('/api/report').query({ id: 123123, year: 2020, month: 1 });
     const educationEntry = secondRes.body.costs.find((entry) => 'education' in entry);
     expect(educationEntry.education).toHaveLength(1);
+  });
+
+  it('rejects invalid report parameters with an id/message error document', async () => {
+    const res = await request(app).get('/api/report').query({ id: 123123, year: 2026, month: 13 });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('id');
+    expect(res.body).toHaveProperty('message');
   });
 });

@@ -34,6 +34,8 @@ to the same MongoDB Atlas database.
   used by the monthly report endpoint (see `costs-service`).
 - **`middleware/requestLogger.js`** writes a log entry to the `logs`
   collection for every HTTP request received by any of the 4 services.
+- **`middleware/endpointLogger.js`** writes the additional log entry required
+  whenever one of the defined endpoints is accessed.
 - **`middleware/errorHandler.js`** guarantees every error response is a
   JSON document with (at least) `id` and `message`.
 - **Computed Design Pattern**: implemented in
@@ -42,6 +44,10 @@ to the same MongoDB Atlas database.
   cached in the `reports` collection; later requests for the same
   (userid, year, month) are served from that cache instead of being
   recomputed. Current/future months are always computed fresh.
+- Cost categories are returned in the required order: `food`, `education`,
+  `health`, `housing`, and `sport`.
+- Cost input validation requires `sum > 0`, a real user, a valid date, and
+  rejects dates before the current day.
 
 ## Before submission
 
